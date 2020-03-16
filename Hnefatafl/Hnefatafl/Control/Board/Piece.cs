@@ -13,7 +13,11 @@ namespace Hnefatafl.Control.Board
 {
     public partial class Piece : System.Windows.Forms.Control
     {
+        #region 定数
         const float MARGINE_ = (float)2.5;
+        #endregion
+
+        #region 列挙型
 
         public enum PieceMode
         {
@@ -22,12 +26,17 @@ namespace Hnefatafl.Control.Board
             WhiteKing
         }
 
+        #endregion
+
         #region 変数, インスタンス
 
         private PieceMode m_PieceMode = PieceMode.Black;
 
+        private Board m_Board = null;
+        
         #endregion
 
+        #region メソッド
         public Piece()
         {
             InitializeComponent();
@@ -43,7 +52,12 @@ namespace Hnefatafl.Control.Board
             SetPieceMode(PieceMode.Black);
         }
 
-        public void SetPieceMode(PieceMode mode) 
+        public void SetBoard(Board board) 
+        {
+            m_Board = board;
+        }
+
+        public void SetPieceMode(PieceMode mode)
         {
             m_PieceMode = mode;
 
@@ -68,12 +82,25 @@ namespace Hnefatafl.Control.Board
         {
             base.OnPaint(pe);
 
-            switch (m_PieceMode) 
+            Graphics g = pe.Graphics;
+
+            switch (m_PieceMode)
             {
+                case PieceMode.Black:
+
+                    break;
+
+                case PieceMode.White:
+
+                    g.DrawEllipse(new Pen(new SolidBrush(this.ForeColor), 2),
+                                    MARGINE_, MARGINE_,
+                                    (float)Values.MASS_AND_PEACE_LEN - MARGINE_ * 2,
+                                    (float)Values.MASS_AND_PEACE_LEN - MARGINE_ * 2);
+
+                    break;
+
                 case PieceMode.WhiteKing:
 
-
-                    Graphics g = pe.Graphics;
 
                     string str = "K";
 
@@ -90,5 +117,10 @@ namespace Hnefatafl.Control.Board
                     break;
             }
         }
+
+
+        #endregion
+
+
     }
 }

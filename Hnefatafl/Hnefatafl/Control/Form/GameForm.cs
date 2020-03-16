@@ -25,19 +25,19 @@ namespace Hnefatafl
             Control.Board.Board br = new Control.Board.Board();
             br.BackColor = Color.White;
 
-            br.SetSizeMode(Control.Board.Board.BoardMode._11_11);
+            br.SetGameMode(Values.eGameMode.Hnefatafl);
 
             pnlStage.Controls.Add(br);
 
             br.Location = new Point(10, 10);
 
-            Control.Board.Piece p = new Control.Board.Piece();
+            //Control.Board.Piece p = new Control.Board.Piece();
 
-            p.SetPieceMode(Control.Board.Piece.PieceMode.WhiteKing);
+            //p.SetPieceMode(Control.Board.Piece.PieceMode.WhiteKing);
 
-            br.Controls.Add(p);
+            //br.Controls.Add(p);
 
-            p.Location = new Point(Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4, Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4);
+            //p.Location = new Point(Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4, Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4);
 
 
         }

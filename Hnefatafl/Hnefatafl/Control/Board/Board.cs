@@ -21,16 +21,7 @@ namespace Hnefatafl.Control.Board
 
         #region 列挙型
 
-        /// <summary>
-        /// ボードサイズ
-        /// </summary>
-        public enum BoardMode
-        {
-            _7_7,
-            _9_9,
-            _11_11,
-            _19_19
-        }
+
 
         #endregion
 
@@ -39,7 +30,7 @@ namespace Hnefatafl.Control.Board
         /// <summary>
         /// サイズ指定
         /// </summary>
-        private BoardMode m_BoardMode = BoardMode._11_11;
+        private Values.eGameMode m_GameMode = Values.eGameMode.Hnefatafl;
 
 
         Point m_LeftTop = new Point();
@@ -65,7 +56,7 @@ namespace Hnefatafl.Control.Board
         {
             InitializeComponent();
 
-            SetSizeMode(BoardMode._11_11);
+            SetGameMode(Values.eGameMode.Hnefatafl);
         }
 
         /// <summary>
@@ -73,33 +64,17 @@ namespace Hnefatafl.Control.Board
         /// 1マス 30×30
         /// </summary>
         /// <param name="mode"></param>
-        public void SetSizeMode(BoardMode mode) 
+        public void SetGameMode(Values.eGameMode mode) 
         {
-            m_BoardMode = mode;
+            m_GameMode = mode;
 
-            int a = 1;
+            int max = 1;
 
-            switch (m_BoardMode)
-            {
-                case BoardMode._7_7:
-                    a = 7;
-                    break;
-                case BoardMode._9_9:
-                    a = 9;
-                    break;
-                case BoardMode._11_11:
-                    a = 11;
-                    break;
-                case BoardMode._19_19:
-                    a = 19;
-                    break;
-                default:
-                    a = 11;
-                    break;
-            }
+            //順番注意
+            max = GetMax();
 
-            m_BoardWidth = Values.MASS_AND_PEACE_LEN * a;
-            m_BoadHeight = Values.MASS_AND_PEACE_LEN * a;
+            m_BoardWidth = Values.MASS_AND_PEACE_LEN * max;
+            m_BoadHeight = Values.MASS_AND_PEACE_LEN * max;
 
             int width = m_BoardWidth + 2*Values.BOARD_MARGINE;
             int height = m_BoadHeight + 2*Values.BOARD_MARGINE;
@@ -111,6 +86,102 @@ namespace Hnefatafl.Control.Board
             m_RightTop = new Point(this.Size.Width - Values.BOARD_MARGINE, Values.BOARD_MARGINE);
             m_RightBottom = new Point(this.Size.Width - Values.BOARD_MARGINE, this.Size.Height - Values.BOARD_MARGINE);
 
+            //駒の配置
+            SetPiece();
+        }
+
+        /// <summary>
+        /// 駒の配置
+        /// </summary>
+        private void SetPiece() 
+        {
+            SetBlackPiece();
+
+            SetWhitePiece();
+        }
+
+        private void SetWhitePiece() 
+        {
+            int max = GetMax();
+
+            int i = 0;
+
+            switch (m_GameMode)
+            {
+                case Values.eGameMode.Brandubh:
+                    break;
+                case Values.eGameMode.ArdRi:
+                    break;
+                case Values.eGameMode.Tablut:
+                    break;
+                case Values.eGameMode.Tawlbwrdd:
+                    break;
+                case Values.eGameMode.Hnefatafl:
+                    //12ピース+キング1ピース
+
+                    for (i = 0; i < 12; i++) 
+                    {
+                        switch (i)
+                        {
+                            case 0:
+                            case 12:
+                                //1個
+                                break;
+
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 9:
+                            case 10:
+                            case 11:
+                                //3個
+                                break;    
+
+                            default:
+                                //4個
+                                break;
+
+                        }
+                    }
+
+                    Piece piece = new Piece();
+                    piece.SetBoard(this);
+                    piece.SetPieceMode(Piece.PieceMode.WhiteKing);
+
+                    this.Controls.Add(piece);
+
+                    int x = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (max - 1) / 2;
+                    int y = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (max - 1) / 2;
+
+                    piece.Location = new Point(x, y);
+
+                    break;
+                case Values.eGameMode.AleaEvangelii:
+                    break;
+                default:
+                    break;
+            }
+        }
+        private void SetBlackPiece() 
+        {
+            switch (m_GameMode)
+            {
+                case Values.eGameMode.Brandubh:
+                    break;
+                case Values.eGameMode.ArdRi:
+                    break;
+                case Values.eGameMode.Tablut:
+                    break;
+                case Values.eGameMode.Tawlbwrdd:
+                    break;
+                case Values.eGameMode.Hnefatafl:
+                    //24ピース
+                    break;
+                case Values.eGameMode.AleaEvangelii:
+                    break;
+                default:
+                    break;
+            }
         }
 
         /// <summary>
@@ -130,29 +201,7 @@ namespace Hnefatafl.Control.Board
 
             int max = 0;
 
-            switch (m_BoardMode)
-            {
-                case BoardMode._7_7:
-                    max = 7;
-
-                    break;
-                case BoardMode._9_9:
-                    max = 9;
-
-                    break;
-                case BoardMode._11_11:
-                    max = 11;
-
-                    break;
-                case BoardMode._19_19:
-                    max = 19;
-
-                    break;
-                default:
-                    break;
-            }
-
-           
+            max = GetMax();
 
             Brush br = new SolidBrush(BOARD_LIGHT_GRAY);
 
@@ -237,6 +286,151 @@ namespace Hnefatafl.Control.Board
                                                     rightTop.Y + i * Values.MASS_AND_PEACE_LEN);
 
             }
+
+            int margin = 2;
+
+            //中央目印
+            g.DrawLine(new Pen(Color.Black), leftTop.X + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.Y + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.X + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.Y + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin);
+
+            g.DrawLine(new Pen(Color.Black), leftTop.X + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin,
+                                                    leftTop.Y + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.X + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin,
+                                                    leftTop.Y + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin);
+
+            g.DrawLine(new Pen(Color.Black), leftTop.X + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.Y + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.X + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin,
+                                                    leftTop.Y + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin);
+
+            g.DrawLine(new Pen(Color.Black), leftTop.X + (max - 1) / 2 * Values.MASS_AND_PEACE_LEN + margin,
+                                                    leftTop.Y + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin,
+                                                    leftTop.X + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin,
+                                                    leftTop.Y + (max + 1) / 2 * Values.MASS_AND_PEACE_LEN - margin);
+
+            //4隅目印
+            int x1 = 0;
+            int y1 = 0;
+            int x2 = 0;
+            int y2 = 0;
+            for (int k = 0; k < 4; k++) 
+            {
+                //横
+                switch (k)
+                {
+                    case 0:
+                        //0: 左上隅
+                        x1 = leftTop.X + margin;
+                        y1 = leftTop.Y + margin;
+                        x2 = leftTop.X + Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 1:
+                        //1: 左下隅
+                        x1 = leftTop.X + margin;
+                        y1 = leftTop.Y + max * Values.MASS_AND_PEACE_LEN - margin;
+                        x2 = leftTop.X + Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 2:
+                        //2: 右上隅
+                        x1 = leftTop.X + (max - 1) * Values.MASS_AND_PEACE_LEN + margin;
+                        y1 = leftTop.Y + margin;
+                        x2 = leftTop.X + max * Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 3:
+                        //3: 右下隅
+                        x1 = leftTop.X + (max - 1) * Values.MASS_AND_PEACE_LEN + margin;
+                        y1 = leftTop.Y + max * Values.MASS_AND_PEACE_LEN - margin;
+                        x2 = leftTop.X + max * Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                y2 = y1;
+
+                g.DrawLine(new Pen(Color.Black), x1,
+                                                 y1,
+                                                 x2,
+                                                 y2);
+
+                //縦
+                switch (k)
+                {
+                    case 0:
+                        //0: 左上隅
+                        x1 = leftTop.X + margin;
+                        y1 = leftTop.Y + margin;
+                        y2 = leftTop.Y + Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 1:
+                        //1: 左下隅
+                        x1 = leftTop.X + margin;
+                        y1 = leftTop.Y + (max - 1) * Values.MASS_AND_PEACE_LEN + margin;
+                        y2 = leftTop.Y + max * Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 2:
+                        //2: 右上隅
+                        x1 = leftTop.X + max * Values.MASS_AND_PEACE_LEN - margin;
+                        y1 = leftTop.Y + margin;
+                        y2 = leftTop.Y + Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    case 3:
+                        //3: 右下隅
+                        x1 = leftTop.X + max * Values.MASS_AND_PEACE_LEN - margin;
+                        y1 = leftTop.Y + (max - 1) * Values.MASS_AND_PEACE_LEN + margin;
+                        y2 = leftTop.Y + max * Values.MASS_AND_PEACE_LEN - margin;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                x2 = x1;
+
+                g.DrawLine(new Pen(Color.Black), x1,
+                                                 y1,
+                                                 x2,
+                                                 y2);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameMode"></param>
+        /// <returns></returns>
+        private int GetMax() 
+        {
+            int max = 0;
+
+            switch (m_GameMode)
+            {
+                case Values.eGameMode.Brandubh:
+                    max = 7;
+
+                    break;
+                case Values.eGameMode.ArdRi:
+                    max = 7;
+
+                    break;
+                case Values.eGameMode.Hnefatafl:
+                    max = 11;
+
+                    break;
+                default:
+                    break;
+            }
+
+            return max;
         }
 
         #endregion
