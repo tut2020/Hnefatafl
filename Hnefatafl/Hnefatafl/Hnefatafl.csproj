@@ -46,17 +46,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Control\Board\BlackPiece.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Control\Board\Board.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Control\Board\Board.Designer.cs">
       <DependentUpon>Board.cs</DependentUpon>
     </Compile>
-    <Compile Include="Control\Board\Piece.cs">
+    <Compile Include="Control\Board\BoardItem.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Control\Board\Piece.Designer.cs">
-      <DependentUpon>Piece.cs</DependentUpon>
+    <Compile Include="Control\Board\BoardItem.Designer.cs">
+      <DependentUpon>BoardItem.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Control\Board\PointPiece.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Control\Board\WhiteKing.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Control\Board\WhitePiece.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Control\Form\GameForm.cs">
       <SubType>Form</SubType>

@@ -27,6 +27,14 @@ namespace Hnefatafl.Control.Board
 
         #region 変数, インスタンス
 
+        private PointPiece[,] m_Point = null;
+
+        private BlackPiece[] m_Black = null;
+
+        private WhitePiece[] m_White = null;
+
+        private WhiteKing m_WhiteKing = null;
+
         /// <summary>
         /// サイズ指定
         /// </summary>
@@ -56,7 +64,7 @@ namespace Hnefatafl.Control.Board
         {
             InitializeComponent();
 
-            SetGameMode(Values.eGameMode.Hnefatafl);
+            //SetGameMode(Values.eGameMode.Hnefatafl);
         }
 
         /// <summary>
@@ -71,7 +79,7 @@ namespace Hnefatafl.Control.Board
             int max = 1;
 
             //順番注意
-            max = GetMax();
+            max = GetBoardMax();
 
             m_BoardWidth = Values.MASS_AND_PEACE_LEN * max;
             m_BoadHeight = Values.MASS_AND_PEACE_LEN * max;
@@ -95,16 +103,117 @@ namespace Hnefatafl.Control.Board
         /// </summary>
         private void SetPiece() 
         {
+            //順番注意→ポイント→駒(駒はポイントの位置情報を使用する)
+            SetPoint();
+
             SetBlackPiece();
 
             SetWhitePiece();
+
+        }
+
+        private void SetPoint() 
+        {
+            int max = GetBoardMax();
+
+            m_Point = new PointPiece[max,max];
+
+            for (int rowI = 0; rowI < max; rowI++) 
+            {
+                for (int clI = 0; clI < max; clI++) 
+                {
+                    m_Point[rowI, clI] = new PointPiece();
+
+                    this.Controls.Add(m_Point[rowI, clI]);
+
+                    int x = 0;
+                    int y = 0;
+
+                    x = m_LeftTop.X + clI * Values.MASS_AND_PEACE_LEN;
+                    y = m_LeftTop.Y + (max - 1 - rowI) * Values.MASS_AND_PEACE_LEN;
+
+                    m_Point[rowI, clI].SetPoint(rowI, clI, new Point(x,y)) ;
+
+                    m_Point[rowI, clI].Click += RecievePointClicked;
+                }
+            }
+
+        }
+
+        private void RecievePointClicked(object sender, EventArgs e)
+        {
+            if(PointPiece.Is_SelectedMode == false) { return; }
+
+            PointPiece p = (PointPiece)sender;
+
+            int max = GetBlackMax();
+            int rowI = 0;
+            int colI = 0;
+
+
+            for (int i = 0; i < max; i++) 
+            {
+                if (m_Black[i].IsSelected == true) 
+                {
+                    //現在の場所から移動
+                    rowI = m_Black[i].RowIndex;
+                    colI = m_Black[i].ColumnIndex;
+
+                    m_Black[i].RemoveFromPoint(m_Point[rowI, colI]);
+
+                    m_Black[i].SetOnPoint(p);
+
+                    m_Black[i].SelectThisItem(false);
+
+                    SetPointSelectMode(false, null);
+
+                    return;
+                }
+            }
+
+            max = GetWhiteMax();
+
+            for (int i = 0; i < max ; i++)
+            {
+                if (m_White[i].IsSelected == true)
+                {
+                    //現在の場所から移動
+                    rowI = m_White[i].RowIndex;
+                    colI = m_White[i].ColumnIndex;
+
+                    m_White[i].RemoveFromPoint(m_Point[rowI, colI]);
+
+                    m_White[i].SetOnPoint(p);
+
+                    m_White[i].SelectThisItem(false);
+
+                    SetPointSelectMode(false, null);
+
+                    return;
+                }
+            }
+
+            if (m_WhiteKing.IsSelected == true) 
+            {
+                rowI = m_WhiteKing.RowIndex;
+                colI = m_WhiteKing.ColumnIndex;
+
+                m_WhiteKing.RemoveFromPoint(m_Point[rowI, colI]);
+
+                m_WhiteKing.SetOnPoint(p);
+
+                m_WhiteKing.SelectThisItem(false);
+
+                SetPointSelectMode(false, null);
+            }
         }
 
         private void SetWhitePiece() 
         {
-            int max = GetMax();
 
+            int max = GetWhiteMax();
             int i = 0;
+            m_White = new WhitePiece[max];
 
             switch (m_GameMode)
             {
@@ -113,47 +222,56 @@ namespace Hnefatafl.Control.Board
                 case Values.eGameMode.ArdRi:
                     break;
                 case Values.eGameMode.Tablut:
-                    break;
-                case Values.eGameMode.Tawlbwrdd:
-                    break;
-                case Values.eGameMode.Hnefatafl:
-                    //12ピース+キング1ピース
+                    //8ピース+1キング
 
-                    for (i = 0; i < 12; i++) 
+                    
+
+                    for (i = 0; i < max; i++)
                     {
+                        WhitePiece item = new WhitePiece();
+                        this.Controls.Add(item);
+                        m_White[i] = item;
+                        item.BringToFront();
+                        item.Click += RecieveWhitePieceClicked;
+                        
+
                         switch (i)
                         {
                             case 0:
-                            case 12:
-                                //1個
+                                item.SetOnPoint(m_Point[2, 4]);
                                 break;
-
                             case 1:
-                            case 2:
-                            case 3:
-                            case 9:
-                            case 10:
-                            case 11:
-                                //3個
-                                break;    
-
-                            default:
-                                //4個
+                                item.SetOnPoint(m_Point[3, 4]);
                                 break;
-
+                            case 2:
+                                item.SetOnPoint(m_Point[4, 2]);
+                                break;
+                            case 3:
+                                item.SetOnPoint(m_Point[4, 3]);
+                                break;
+                            case 4:
+                                item.SetOnPoint(m_Point[4, 5]);
+                                break;
+                            case 5:
+                                item.SetOnPoint(m_Point[4, 6]);
+                                break;
+                            case 6:
+                                item.SetOnPoint(m_Point[5, 4]);
+                                break;
+                            case 7:
+                                item.SetOnPoint(m_Point[6, 4]);
+                                break;
+                            
                         }
                     }
 
-                    Piece piece = new Piece();
-                    piece.SetBoard(this);
-                    piece.SetPieceMode(Piece.PieceMode.WhiteKing);
+                    break;
+                case Values.eGameMode.Tawlbwrdd:
+                    
 
-                    this.Controls.Add(piece);
-
-                    int x = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (max - 1) / 2;
-                    int y = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (max - 1) / 2;
-
-                    piece.Location = new Point(x, y);
+                    break;
+                case Values.eGameMode.Hnefatafl:
+                    
 
                     break;
                 case Values.eGameMode.AleaEvangelii:
@@ -161,9 +279,32 @@ namespace Hnefatafl.Control.Board
                 default:
                     break;
             }
+
+            WhiteKing piece = new WhiteKing();
+            piece.SetBoard(this);
+            piece.Click += RecieveWhiteKingClicked;
+            m_WhiteKing = piece;
+
+            this.Controls.Add(piece);
+
+
+            piece.BringToFront();
+
+            int boardmax = GetBoardMax();
+
+            int x = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (boardmax - 1) / 2;
+            int y = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (boardmax - 1) / 2;
+
+            piece.Location = new Point(x, y);
+
         }
         private void SetBlackPiece() 
         {
+            int max = GetBlackMax();
+            int i = 0;
+
+            m_Black = new BlackPiece[max];
+
             switch (m_GameMode)
             {
                 case Values.eGameMode.Brandubh:
@@ -171,6 +312,72 @@ namespace Hnefatafl.Control.Board
                 case Values.eGameMode.ArdRi:
                     break;
                 case Values.eGameMode.Tablut:
+                    //16ピース
+
+                    for (i = 0; i < max; i++) 
+                    {
+                        BlackPiece item = new BlackPiece();
+
+                        m_Black[i] = item;
+
+                        this.Controls.Add(item);
+                        item.Click += RecieveBlackPieceClicked;
+                        item.BringToFront();
+
+                        switch (i) 
+                        {
+                            case 0:
+                                item.SetOnPoint(m_Point[3, 0]);
+                                break;
+                            case 1:
+                                item.SetOnPoint(m_Point[4, 0]);
+                                break;
+                            case 2:
+                                item.SetOnPoint(m_Point[4, 1]);
+                                break;
+                            case 3:
+                                item.SetOnPoint(m_Point[5, 0]);
+                                break;
+                            case 4:
+                                item.SetOnPoint(m_Point[0, 3]);
+                                break;
+                            case 5:
+                                item.SetOnPoint(m_Point[0, 4]);
+                                break;
+                            case 6:
+                                item.SetOnPoint(m_Point[0, 5]);
+                                break;
+                            case 7:
+                                item.SetOnPoint(m_Point[1, 4]);
+                                break;
+                            case 8:
+                                item.SetOnPoint(m_Point[7, 4]);
+                                break;
+                            case 9:
+                                item.SetOnPoint(m_Point[8, 3]);
+                                break;
+                            case 10:
+                                item.SetOnPoint(m_Point[8, 4]);
+                                break;
+                            case 11:
+                                item.SetOnPoint(m_Point[8, 5]);
+                                break;
+                            case 12:
+                                item.SetOnPoint(m_Point[3, 8]);
+                                break;
+                            case 13:
+                                item.SetOnPoint(m_Point[4, 7]);
+                                break;
+                            case 14:
+                                item.SetOnPoint(m_Point[4, 8]);
+                                break;
+                            case 15:
+                                item.SetOnPoint(m_Point[5, 8]);
+                                break;
+                            
+                        }
+                    }
+
                     break;
                 case Values.eGameMode.Tawlbwrdd:
                     break;
@@ -182,6 +389,194 @@ namespace Hnefatafl.Control.Board
                 default:
                     break;
             }
+        }
+
+        private void SetPointSelectMode(bool isSelectMode, BoardItem item) 
+        {
+            int max = GetBoardMax();
+
+            PointPiece.Is_SelectedMode = isSelectMode;
+
+            if (isSelectMode == true)
+            {
+                //選択状態の場合は選択ピースを中心に4方向に確認処理を行う。
+
+                bool bln = true;
+
+                for (int i = item.RowIndex + 1; i < max; i++)
+                {
+                    if (m_Point[i, item.ColumnIndex].IsExistUpper == true) 
+                    {
+                        if (bln == true) bln = false;
+                    }
+
+                    if (bln == false) 
+                    {
+                        m_Point[i, item.ColumnIndex].SelectThisItem(false);
+                    }
+                    else
+                    {
+                        m_Point[i, item.ColumnIndex].SelectThisItem(true);
+                    }
+                }
+
+                bln = true;
+
+                for (int i = item.RowIndex - 1; i >= 0; i--)
+                {
+                    if (m_Point[i, item.ColumnIndex].IsExistUpper == true)
+                    {
+                        if (bln == true) bln = false;
+                    }
+
+                    if (bln == false)
+                    {
+                        m_Point[i, item.ColumnIndex].SelectThisItem(false);
+                    }
+                    else
+                    {
+                        m_Point[i, item.ColumnIndex].SelectThisItem(true);
+                    }
+                }
+
+                bln = true;
+
+                for (int i = item.ColumnIndex + 1; i < max; i++)
+                {
+                    if (m_Point[item.RowIndex, i].IsExistUpper == true)
+                    {
+                        if (bln == true) bln = false;
+                    }
+
+                    if (bln == false)
+                    {
+                        m_Point[item.RowIndex, i].SelectThisItem(false);
+                    }
+                    else 
+                    {
+                        m_Point[item.RowIndex, i].SelectThisItem(true);
+                    }
+                }
+
+                bln = true;
+
+                for (int i = item.ColumnIndex - 1; i >= 0; i--)
+                {
+                    if (m_Point[item.RowIndex, i].IsExistUpper == true)
+                    {
+                        if (bln == true) bln = false;
+                    }
+
+                    if (bln == false)
+                    {
+                        m_Point[item.RowIndex, i].SelectThisItem(false);
+                    }
+                    else
+                    {
+                        m_Point[item.RowIndex, i].SelectThisItem(true);
+                    }
+                }
+
+            }
+            else 
+            {
+                //非選択
+                for (int rowI = 0; rowI < max; rowI++)
+                {
+                    for (int clI = 0; clI < max; clI++)
+                    { 
+                            m_Point[rowI, clI].SelectThisItem(false);
+
+                    }
+                }
+
+            }
+        }
+
+        private void RecieveWhiteKingClicked(object sender, EventArgs e)
+        {
+
+            if (sender.GetType() == typeof(WhiteKing))
+            {
+                WhiteKing item = (WhiteKing)sender;
+
+                bool bln = !item.IsSelected;
+
+                if (bln == true)
+                {
+                    //選択状態にする処理では他を非選択状態にする。
+                    //順番注意 選択の確認→色をデフォルトに→選択対象
+                    SetDefaultColor();
+                }
+
+                SetPointSelectMode(bln, (BoardItem)item);
+
+                item.SelectThisItem(bln);
+            }
+
+        }
+
+        private void RecieveWhitePieceClicked(object sender, EventArgs e)
+        {
+
+            if (sender.GetType() == typeof(WhitePiece))
+            {
+                WhitePiece item = (WhitePiece)sender;
+
+                bool bln = !item.IsSelected;
+
+                if (bln == true)
+                {
+                    //選択状態にする処理では他を非選択状態にする。
+                    //順番注意 選択の確認→色をデフォルトに→選択対象
+                    SetDefaultColor();
+
+                }
+
+                SetPointSelectMode(bln, (BoardItem)item);
+
+                item.SelectThisItem(bln);
+            }
+
+        }
+
+        private void RecieveBlackPieceClicked(object sender, EventArgs e) 
+        {
+
+            if (sender.GetType() == typeof(BlackPiece)) 
+            {
+                BlackPiece item = (BlackPiece)sender;
+
+                bool bln = !item.IsSelected;
+
+                if (bln == true)
+                {
+                    //選択状態にする処理では他を非選択状態にする。
+                    //順番注意 選択の確認→色をデフォルトに→選択対象
+                    SetDefaultColor();
+                }
+
+                SetPointSelectMode(bln, (BoardItem)item);
+
+                item.SelectThisItem(bln);
+
+            }
+
+        }
+
+        private void SetDefaultColor() 
+        {
+            for (int i = 0; i < m_Black.Length; i++) 
+            {
+                m_Black[i].SelectThisItem(false);
+            }
+
+            for (int i = 0; i < m_White.Length; i++)
+            {
+                m_White[i].SelectThisItem(false);
+            }
+
+            m_WhiteKing.SelectThisItem(false);
         }
 
         /// <summary>
@@ -201,7 +596,7 @@ namespace Hnefatafl.Control.Board
 
             int max = 0;
 
-            max = GetMax();
+            max = GetBoardMax();
 
             Brush br = new SolidBrush(BOARD_LIGHT_GRAY);
 
@@ -403,12 +798,7 @@ namespace Hnefatafl.Control.Board
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="gameMode"></param>
-        /// <returns></returns>
-        private int GetMax() 
+        private int GetBlackMax() 
         {
             int max = 0;
 
@@ -422,6 +812,79 @@ namespace Hnefatafl.Control.Board
                     max = 7;
 
                     break;
+
+                case Values.eGameMode.Tablut:
+                    max = 16;
+
+                    break;
+
+                case Values.eGameMode.Hnefatafl:
+                    max = 11;
+
+                    break;
+                default:
+                    break;
+            }
+
+            return max;
+        }
+
+        private int GetWhiteMax()
+        {
+            int max = 0;
+
+            switch (m_GameMode)
+            {
+                case Values.eGameMode.Brandubh:
+                    max = 7;
+
+                    break;
+                case Values.eGameMode.ArdRi:
+                    max = 7;
+
+                    break;
+
+                case Values.eGameMode.Tablut:
+                    max = 8;
+
+                    break;
+
+                case Values.eGameMode.Hnefatafl:
+                    max = 11;
+
+                    break;
+                default:
+                    break;
+            }
+
+            return max;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameMode"></param>
+        /// <returns></returns>
+        private int GetBoardMax() 
+        {
+            int max = 0;
+
+            switch (m_GameMode)
+            {
+                case Values.eGameMode.Brandubh:
+                    max = 7;
+
+                    break;
+                case Values.eGameMode.ArdRi:
+                    max = 7;
+
+                    break;
+
+                case Values.eGameMode.Tablut:
+                    max = 9;
+
+                    break;
+
                 case Values.eGameMode.Hnefatafl:
                     max = 11;
 

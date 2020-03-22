@@ -1,6 +1,8 @@
-﻿namespace Hnefatafl.Control.Board
+﻿using System.Windows.Forms;
+
+namespace Hnefatafl.Control.Board
 {
-    partial class Piece
+    partial class BoardItem
     {
         /// <summary>
         /// 必要なデザイナー変数です。
@@ -29,6 +31,8 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            //透明設定
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
         }
 
         #endregion

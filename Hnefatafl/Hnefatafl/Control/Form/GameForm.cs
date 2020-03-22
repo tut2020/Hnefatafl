@@ -25,11 +25,14 @@ namespace Hnefatafl
             Control.Board.Board br = new Control.Board.Board();
             br.BackColor = Color.White;
 
-            br.SetGameMode(Values.eGameMode.Hnefatafl);
+            br.SetGameMode(Values.eGameMode.Tablut);
 
             pnlStage.Controls.Add(br);
 
             br.Location = new Point(10, 10);
+
+            //this.TransparencyKey = Hnefatafl.Control.Board.BoardItem.SELECTED_COLOR;
+            //this.Opacity = 50;
 
             //Control.Board.Piece p = new Control.Board.Piece();
 
