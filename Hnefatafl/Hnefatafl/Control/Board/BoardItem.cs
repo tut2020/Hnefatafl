@@ -42,10 +42,14 @@ namespace Hnefatafl.Control.Board
         protected int p_RowIndex = 1;
         protected int p_ColumnIndex = 1;
         protected bool p_IsSelected = false;
-        protected bool p_IsExistUpper = false;
+        //protected bool p_IsExistUpper = false;
+
+        
         #endregion
 
         #region プロパティ
+
+        
 
         public ePieceMode Mode { get { return p_PieceMode; } }
 
@@ -58,7 +62,7 @@ namespace Hnefatafl.Control.Board
 
         public int ColumnIndex { get { return p_ColumnIndex; } }
 
-        public bool IsExistUpper { get { return p_IsExistUpper; } }
+        //public bool IsExistUpper { get { return p_IsExistUpper; } }
 
         #endregion
 
@@ -87,24 +91,15 @@ namespace Hnefatafl.Control.Board
             p_IsSelected = isSelected;
         }
 
-        public void SetOnPoint(PointPiece p) 
+        public void SetPoint(PointPiece p) 
         {
             p_RowIndex = p.RowIndex;
             p_ColumnIndex = p.ColumnIndex;
             this.Location = p.Location;
-            p.SetIsExitUpper(true);
+
+            p.PutOnPiece(this);
         }
 
-        public void RemoveFromPoint(PointPiece p) 
-        {
-            //
-            p.SetIsExitUpper(false);
-        }
-
-        public void SetIsExitUpper(bool isExist) 
-        {
-            p_IsExistUpper = isExist;
-        }
 
         public void SetPoint(int rowIndex, int columnIndex, System.Drawing.Point point)
         {

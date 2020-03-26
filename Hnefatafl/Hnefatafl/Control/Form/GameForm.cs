@@ -31,18 +31,11 @@ namespace Hnefatafl
 
             br.Location = new Point(10, 10);
 
-            //this.TransparencyKey = Hnefatafl.Control.Board.BoardItem.SELECTED_COLOR;
-            //this.Opacity = 50;
 
-            //Control.Board.Piece p = new Control.Board.Piece();
+            //設計用にのせているコントロール削除
+            pnlLog.Controls.Clear();
 
-            //p.SetPieceMode(Control.Board.Piece.PieceMode.WhiteKing);
-
-            //br.Controls.Add(p);
-
-            //p.Location = new Point(Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4, Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 4);
-
-
+            br.SetLogPanel(pnlLog);
         }
     }
 }

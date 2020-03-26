@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Hnefatafl.Control.Log;
 
 namespace Hnefatafl.Control.Board
 {
@@ -17,6 +18,14 @@ namespace Hnefatafl.Control.Board
         readonly Color BOARD_LIGHT_GRAY = Color.LightGray;
         readonly Color BOARD_WHITE = Color.White;
 
+        const int LEFT_MARGIN = 3;
+        const int TOP_MARGIN = 5;
+
+        const int CONTROL_MARGIN = 10;
+
+        //最大、横に500手, 縦に500手までとする。
+        const int MAX_LOG = 500;
+
         #endregion
 
         #region 列挙型
@@ -26,6 +35,41 @@ namespace Hnefatafl.Control.Board
         #endregion
 
         #region 変数, インスタンス
+
+        /// <summary>
+        /// 現在の最新の手
+        /// </summary>
+        private LogItem m_CurLogItem = null;
+
+        /// <summary>
+        /// ログ用パネル
+        /// </summary>
+        private Panel m_LogPanel = null;
+
+        ///// <summary>
+        ///// ログ保存用配列
+        ///// 
+        ///// null 指されていない手
+        ///// 
+        ///// </summary>
+        //private LogItem[][] m_LogArray;
+
+        ///// <summary>
+        ///// 現在のログの位置 (1次元目)
+        ///// ↓方向
+        ///// </summary>
+        //private int m_CurLog1D = 0;
+
+        ///// <summary>
+        ///// 現在のログの位置 (2次元目)
+        ///// →方向
+        ///// </summary>
+        //private int m_CurLog2D = 0;
+
+        /// <summary>
+        /// 襲撃者側が常に先手
+        /// </summary>
+        private bool m_IsAttakerTurn = true;
 
         private PointPiece[,] m_Point = null;
 
@@ -65,6 +109,15 @@ namespace Hnefatafl.Control.Board
             InitializeComponent();
 
             //SetGameMode(Values.eGameMode.Hnefatafl);
+
+            //m_LogArray = new LogItem[MAX_LOG][];
+
+            //for (int i = 0; i < MAX_LOG; i++) 
+            //{
+            //    m_LogArray[i] = new LogItem[MAX_LOG];
+
+
+            //}
         }
 
         /// <summary>
@@ -122,6 +175,7 @@ namespace Hnefatafl.Control.Board
             {
                 for (int clI = 0; clI < max; clI++) 
                 {
+                    
                     m_Point[rowI, clI] = new PointPiece();
 
                     this.Controls.Add(m_Point[rowI, clI]);
@@ -159,13 +213,16 @@ namespace Hnefatafl.Control.Board
                     rowI = m_Black[i].RowIndex;
                     colI = m_Black[i].ColumnIndex;
 
-                    m_Black[i].RemoveFromPoint(m_Point[rowI, colI]);
+                    m_Point[rowI, colI].PutOnPiece(null);
 
-                    m_Black[i].SetOnPoint(p);
+                    m_Black[i].SetPoint(p);
+
 
                     m_Black[i].SelectThisItem(false);
 
                     SetPointSelectMode(false, null);
+
+                    SetLogItemAndChangeTurn(BoardItem.ePieceMode.Black, rowI, colI, m_Black[i].RowIndex, m_Black[i].ColumnIndex);
 
                     return;
                 }
@@ -181,13 +238,17 @@ namespace Hnefatafl.Control.Board
                     rowI = m_White[i].RowIndex;
                     colI = m_White[i].ColumnIndex;
 
-                    m_White[i].RemoveFromPoint(m_Point[rowI, colI]);
 
-                    m_White[i].SetOnPoint(p);
+                    m_Point[rowI, colI].PutOnPiece(null);
+
+                    m_White[i].SetPoint(p);
+
 
                     m_White[i].SelectThisItem(false);
 
                     SetPointSelectMode(false, null);
+
+                    SetLogItemAndChangeTurn(BoardItem.ePieceMode.White, rowI, colI, m_White[i].RowIndex, m_White[i].ColumnIndex);
 
                     return;
                 }
@@ -198,13 +259,16 @@ namespace Hnefatafl.Control.Board
                 rowI = m_WhiteKing.RowIndex;
                 colI = m_WhiteKing.ColumnIndex;
 
-                m_WhiteKing.RemoveFromPoint(m_Point[rowI, colI]);
+                m_Point[rowI, colI].PutOnPiece(null);
 
-                m_WhiteKing.SetOnPoint(p);
+                m_WhiteKing.SetPoint(p);
+
 
                 m_WhiteKing.SelectThisItem(false);
 
                 SetPointSelectMode(false, null);
+
+                SetLogItemAndChangeTurn(BoardItem.ePieceMode.WhiteKing, rowI, colI, m_WhiteKing.RowIndex, m_WhiteKing.ColumnIndex);
             }
         }
 
@@ -238,32 +302,43 @@ namespace Hnefatafl.Control.Board
                         switch (i)
                         {
                             case 0:
-                                item.SetOnPoint(m_Point[2, 4]);
+                                item.SetPoint(m_Point[2, 4]);
                                 break;
                             case 1:
-                                item.SetOnPoint(m_Point[3, 4]);
+                                item.SetPoint(m_Point[3, 4]);
                                 break;
                             case 2:
-                                item.SetOnPoint(m_Point[4, 2]);
+                                item.SetPoint(m_Point[4, 2]);
                                 break;
                             case 3:
-                                item.SetOnPoint(m_Point[4, 3]);
+                                item.SetPoint(m_Point[4, 3]);
                                 break;
                             case 4:
-                                item.SetOnPoint(m_Point[4, 5]);
+                                item.SetPoint(m_Point[4, 5]);
                                 break;
                             case 5:
-                                item.SetOnPoint(m_Point[4, 6]);
+                                item.SetPoint(m_Point[4, 6]);
                                 break;
                             case 6:
-                                item.SetOnPoint(m_Point[5, 4]);
+                                item.SetPoint(m_Point[5, 4]);
                                 break;
                             case 7:
-                                item.SetOnPoint(m_Point[6, 4]);
+                                item.SetPoint(m_Point[6, 4]);
                                 break;
                             
                         }
                     }
+
+                    WhiteKing piece = new WhiteKing();
+                    piece.SetBoard(this);
+                    piece.Click += RecieveWhiteKingClicked;
+                    this.Controls.Add(piece);
+                    piece.SetPoint(m_Point[4, 4]);
+                    m_WhiteKing = piece;
+
+
+                    piece.BringToFront();
+
 
                     break;
                 case Values.eGameMode.Tawlbwrdd:
@@ -280,24 +355,8 @@ namespace Hnefatafl.Control.Board
                     break;
             }
 
-            WhiteKing piece = new WhiteKing();
-            piece.SetBoard(this);
-            piece.Click += RecieveWhiteKingClicked;
-            m_WhiteKing = piece;
-
-            this.Controls.Add(piece);
-
-
-            piece.BringToFront();
-
-            int boardmax = GetBoardMax();
-
-            int x = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (boardmax - 1) / 2;
-            int y = Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * (boardmax - 1) / 2;
-
-            piece.Location = new Point(x, y);
-
         }
+
         private void SetBlackPiece() 
         {
             int max = GetBlackMax();
@@ -327,52 +386,52 @@ namespace Hnefatafl.Control.Board
                         switch (i) 
                         {
                             case 0:
-                                item.SetOnPoint(m_Point[3, 0]);
+                                item.SetPoint(m_Point[3, 0]);
                                 break;
                             case 1:
-                                item.SetOnPoint(m_Point[4, 0]);
+                                item.SetPoint(m_Point[4, 0]);
                                 break;
                             case 2:
-                                item.SetOnPoint(m_Point[4, 1]);
+                                item.SetPoint(m_Point[4, 1]);
                                 break;
                             case 3:
-                                item.SetOnPoint(m_Point[5, 0]);
+                                item.SetPoint(m_Point[5, 0]);
                                 break;
                             case 4:
-                                item.SetOnPoint(m_Point[0, 3]);
+                                item.SetPoint(m_Point[0, 3]);
                                 break;
                             case 5:
-                                item.SetOnPoint(m_Point[0, 4]);
+                                item.SetPoint(m_Point[0, 4]);
                                 break;
                             case 6:
-                                item.SetOnPoint(m_Point[0, 5]);
+                                item.SetPoint(m_Point[0, 5]);
                                 break;
                             case 7:
-                                item.SetOnPoint(m_Point[1, 4]);
+                                item.SetPoint(m_Point[1, 4]);
                                 break;
                             case 8:
-                                item.SetOnPoint(m_Point[7, 4]);
+                                item.SetPoint(m_Point[7, 4]);
                                 break;
                             case 9:
-                                item.SetOnPoint(m_Point[8, 3]);
+                                item.SetPoint(m_Point[8, 3]);
                                 break;
                             case 10:
-                                item.SetOnPoint(m_Point[8, 4]);
+                                item.SetPoint(m_Point[8, 4]);
                                 break;
                             case 11:
-                                item.SetOnPoint(m_Point[8, 5]);
+                                item.SetPoint(m_Point[8, 5]);
                                 break;
                             case 12:
-                                item.SetOnPoint(m_Point[3, 8]);
+                                item.SetPoint(m_Point[3, 8]);
                                 break;
                             case 13:
-                                item.SetOnPoint(m_Point[4, 7]);
+                                item.SetPoint(m_Point[4, 7]);
                                 break;
                             case 14:
-                                item.SetOnPoint(m_Point[4, 8]);
+                                item.SetPoint(m_Point[4, 8]);
                                 break;
                             case 15:
-                                item.SetOnPoint(m_Point[5, 8]);
+                                item.SetPoint(m_Point[5, 8]);
                                 break;
                             
                         }
@@ -405,7 +464,15 @@ namespace Hnefatafl.Control.Board
 
                 for (int i = item.RowIndex + 1; i < max; i++)
                 {
-                    if (m_Point[i, item.ColumnIndex].IsExistUpper == true) 
+                    if (item.Mode != BoardItem.ePieceMode.WhiteKing) 
+                    {
+                        if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == max - 1) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == max - 1 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == max - 1 && m_Point[i, item.ColumnIndex].ColumnIndex == max - 1) { continue; }
+                    }
+
+                    if (m_Point[i, item.ColumnIndex].Piece != null) 
                     {
                         if (bln == true) bln = false;
                     }
@@ -424,7 +491,15 @@ namespace Hnefatafl.Control.Board
 
                 for (int i = item.RowIndex - 1; i >= 0; i--)
                 {
-                    if (m_Point[i, item.ColumnIndex].IsExistUpper == true)
+                    if (item.Mode != BoardItem.ePieceMode.WhiteKing)
+                    {
+                        if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == max - 1) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == max - 1 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
+                        if (m_Point[i, item.ColumnIndex].RowIndex == max - 1 && m_Point[i, item.ColumnIndex].ColumnIndex == max - 1) { continue; }
+                    }
+
+                    if (m_Point[i, item.ColumnIndex].Piece != null)
                     {
                         if (bln == true) bln = false;
                     }
@@ -443,7 +518,15 @@ namespace Hnefatafl.Control.Board
 
                 for (int i = item.ColumnIndex + 1; i < max; i++)
                 {
-                    if (m_Point[item.RowIndex, i].IsExistUpper == true)
+                    if (item.Mode != BoardItem.ePieceMode.WhiteKing)
+                    {
+                        if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == max - 1) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == max - 1 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == max - 1 && m_Point[item.RowIndex, i].ColumnIndex == max - 1) { continue; }
+                    }
+
+                    if (m_Point[item.RowIndex, i].Piece != null)
                     {
                         if (bln == true) bln = false;
                     }
@@ -462,7 +545,15 @@ namespace Hnefatafl.Control.Board
 
                 for (int i = item.ColumnIndex - 1; i >= 0; i--)
                 {
-                    if (m_Point[item.RowIndex, i].IsExistUpper == true)
+                    if (item.Mode != BoardItem.ePieceMode.WhiteKing)
+                    {
+                        if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == max - 1) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == max - 1 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
+                        if (m_Point[item.RowIndex, i].RowIndex == max - 1 && m_Point[item.RowIndex, i].ColumnIndex == max - 1) { continue; }
+                    }
+
+                    if (m_Point[item.RowIndex, i].Piece != null)
                     {
                         if (bln == true) bln = false;
                     }
@@ -495,6 +586,7 @@ namespace Hnefatafl.Control.Board
 
         private void RecieveWhiteKingClicked(object sender, EventArgs e)
         {
+            if (m_IsAttakerTurn == true) { return; }
 
             if (sender.GetType() == typeof(WhiteKing))
             {
@@ -518,6 +610,7 @@ namespace Hnefatafl.Control.Board
 
         private void RecieveWhitePieceClicked(object sender, EventArgs e)
         {
+            if (m_IsAttakerTurn == true) { return; }
 
             if (sender.GetType() == typeof(WhitePiece))
             {
@@ -542,6 +635,7 @@ namespace Hnefatafl.Control.Board
 
         private void RecieveBlackPieceClicked(object sender, EventArgs e) 
         {
+            if(m_IsAttakerTurn == false) { return; }
 
             if (sender.GetType() == typeof(BlackPiece)) 
             {
@@ -633,7 +727,7 @@ namespace Hnefatafl.Control.Board
                 float x = Values.BOARD_MARGINE / 2;
                 //float y = this.Size.Height - (Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 1 / 2 + Values.MASS_AND_PEACE_LEN * i);
                 float y = (float)this.Size.Height - ((float)Values.BOARD_MARGINE + (float)Values.MASS_AND_PEACE_LEN * ((float)i + (float)1/2));
-                int acsCode = 65; //65がA
+                int acsCode = 97; //65がA
 
                 //行番号
                 if (i < max) 
@@ -894,6 +988,776 @@ namespace Hnefatafl.Control.Board
             }
 
             return max;
+        }
+
+
+        public void SetLogPanel(Panel logp) 
+        {
+            m_LogPanel = logp;
+
+            LogItem litem = new LogItem();
+            litem.Text = "開始";
+
+            m_LogPanel.Controls.Add(litem);
+
+            litem.Location = new Point(LEFT_MARGIN, TOP_MARGIN);
+
+            m_CurLogItem = litem;
+        }
+
+        public void SetLogItemAndChangeTurn(BoardItem.ePieceMode mode, int curRow, int curCol, int nextRowIndex, int nextColIndex) 
+        {
+            LogItem item = null;
+            string str = "";
+            string bar = "-";
+            int acsCode = 97; //65がA, 97がa
+
+
+
+            switch (mode) 
+            {
+                case BoardItem.ePieceMode.Black:
+                    item = new LogItem();
+                    item.BackColor = Color.Black;
+                    item.ForeColor = Color.White;
+                    str = ((char)(acsCode + curCol)).ToString()
+                        + (curRow+1)
+                        + bar
+                        +((char)(acsCode + nextColIndex)).ToString()
+                        + (nextRowIndex+1);
+                    item.Text = str;
+                    m_IsAttakerTurn = false;
+                    break;
+
+                case BoardItem.ePieceMode.White:
+                    item = new LogItem();
+                    item.BackColor = Color.White;
+                    item.ForeColor = Color.Black;
+                    str = ((char)(acsCode + curCol)).ToString()
+                        + (curRow + 1)
+                        + bar
+                        + ((char)(acsCode + nextColIndex)).ToString()
+                        + (nextRowIndex + 1);
+                    item.Text = str;
+                    m_IsAttakerTurn = true;
+                    break;
+
+                case BoardItem.ePieceMode.WhiteKing:
+                    item = new LogItem();
+                    item.BackColor = Color.White;
+                    item.ForeColor = Color.Black;
+                    str = ((char)(acsCode + curCol)).ToString()
+                        + (curRow + 1)
+                        + bar
+                        + ((char)(acsCode + nextColIndex)).ToString()
+                        + (nextRowIndex + 1);
+                    item.Text = str;
+                    m_IsAttakerTurn = true;
+                    break;
+            }
+
+            if (item != null) 
+            {
+                m_LogPanel.Controls.Add(item);
+
+                int x = m_CurLogItem.Location.X;
+                int y = m_CurLogItem.Location.Y + m_CurLogItem.Size.Height + CONTROL_MARGIN;
+
+                item.Location = new Point(x, y);
+
+                m_CurLogItem.NextList.Add(item);
+
+                BoardItem[] temp = CheckRule(nextRowIndex, nextColIndex);
+
+                int count = 0;
+                string addString = "";
+
+                //取られた駒があれば、ログへの追記を行う。
+                for (int i = 0; i < temp.Length; i++) 
+                {
+                    if (temp[i] != null) 
+                    {
+                        int rowindex = temp[i].RowIndex + 1;
+
+                        if (addString == "")
+                        {
+                            addString = ((char)(acsCode + temp[i].ColumnIndex)).ToString() + rowindex;
+                        }
+                        else 
+                        {
+                            addString = addString + "," + ((char)(acsCode + temp[i].ColumnIndex)).ToString() + rowindex;
+                        }
+
+
+                        count += 1;
+                    }
+                }
+
+                if (count > 0) 
+                {
+                    for (int i = 0; i < count; i++) 
+                    {
+                        addString = "x" + addString;
+                    }
+
+                    item.Text = item.Text + addString;
+                }
+
+                m_CurLogItem = item;
+
+                //m_LogArray[m_CurLog1D][m_CurLog2D] = item;
+
+                //m_CurLog1D += 1;
+            }
+        }
+
+        private BoardItem[] CheckRule(int nextRowIndex, int nextColIndex) 
+        {
+            BoardItem[] temp = new BoardItem[4];
+
+            int boardMax = GetBoardMax();
+            
+            BoardItem cur = m_Point[nextRowIndex, nextColIndex].Piece;
+
+            temp[0] = CheckUpper(cur, boardMax, nextRowIndex, nextColIndex);
+            temp[1] = CheckLower(cur, boardMax, nextRowIndex, nextColIndex);
+            temp[2] = CheckRight(cur, boardMax, nextRowIndex, nextColIndex);
+            temp[3] = CheckLeft(cur, boardMax, nextRowIndex, nextColIndex);
+
+
+            return temp;
+        }
+
+        /// <summary>
+        /// 取られる駒がある場合はそのPieaceを返す
+        /// </summary>
+        /// <param name="cur"></param>
+        /// <param name="boardMax"></param>
+        /// <param name="nextRowIndex"></param>
+        /// <param name="nextColIndex"></param>
+        /// <returns></returns>
+        private BoardItem CheckUpper(BoardItem cur, int boardMax, int nextRowIndex, int nextColIndex) 
+        {
+
+            BoardItem neig = null;
+
+            BoardItem pinc = null;
+
+            //上チェック
+            if (nextRowIndex + 2 < boardMax)
+            {
+                neig = m_Point[nextRowIndex + 1, nextColIndex].Piece;
+
+                pinc = m_Point[nextRowIndex + 2, nextColIndex].Piece;
+
+
+                //上端はさみチェック
+                if (nextRowIndex + 2 == boardMax - 1)
+                {
+                    if (nextColIndex == 0 || nextColIndex == boardMax - 1)
+                    {
+
+                        if (neig == null) { return null; }
+
+                        if (cur.Mode != neig.Mode)
+                        {
+                            neig.Visible = false;
+
+                            m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                            return neig;
+                        }
+                    }
+                    else 
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                }
+                else 
+                {
+                    //中央マスを使用したうえはさみチェック
+                    if (nextRowIndex == (boardMax - 1) / 2 - 2 && nextColIndex == (boardMax - 1) / 2) 
+                    {
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.White)
+                            {
+                                if (pinc == null)
+                                {
+                                    //Kingがない場合はとれる
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                            else if (neig.Mode == BoardItem.ePieceMode.WhiteKing)
+                            {
+
+                                BoardItem left = m_Point[nextRowIndex - 1, nextColIndex - 1].Piece;
+
+                                BoardItem right = m_Point[nextRowIndex - 1, nextColIndex + 1].Piece;
+
+                                if (pinc == null && left.Mode == BoardItem.ePieceMode.Black && right.Mode == BoardItem.ePieceMode.Black)
+                                {
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                        }
+                        else 
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                //Kingがない場合はとれる
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else 
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black) 
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex + 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+
+                        
+
+                    }
+                }
+
+                
+            }
+
+
+            return null;
+        }
+
+        private BoardItem CheckLower(BoardItem cur, int boardMax, int nextRowIndex, int nextColIndex)
+        {
+
+            BoardItem neig = null;
+
+            BoardItem pinc = null;
+
+            //下チェック
+            if (nextRowIndex - 2 >= 0)
+            {
+                neig = m_Point[nextRowIndex - 1, nextColIndex].Piece;
+
+                pinc = m_Point[nextRowIndex - 2, nextColIndex].Piece;
+
+
+                //下端はさみチェック
+                if (nextRowIndex - 2 == 1)
+                {
+                    if (nextColIndex == 0 || nextColIndex == boardMax - 1)
+                    {
+
+                        if (neig == null) { return null; }
+
+                        if (cur.Mode != neig.Mode)
+                        {
+                            neig.Visible = false;
+
+                            m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                            return neig;
+                        }
+                    }
+                    else 
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //中央マスを使用したうえはさみチェック
+                    if (nextRowIndex == (boardMax - 1) / 2 + 2 && nextColIndex == (boardMax - 1) / 2)
+                    {
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.White)
+                            {
+                                if (pinc == null)
+                                {
+                                    //Kingがない場合はとれる
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                            else if (neig.Mode == BoardItem.ePieceMode.WhiteKing)
+                            {
+
+                                BoardItem left = m_Point[nextRowIndex + 1, nextColIndex + 1].Piece;
+
+                                BoardItem right = m_Point[nextRowIndex + 1, nextColIndex - 1].Piece;
+
+                                if (pinc == null && left.Mode == BoardItem.ePieceMode.Black && right.Mode == BoardItem.ePieceMode.Black)
+                                {
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                //Kingがない場合はとれる
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex - 1, nextColIndex].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+
+
+
+                    }
+                }
+
+
+            }
+
+
+            return null;
+        }
+
+        /// <summary>
+        /// 取られる駒がある場合はそのPieaceを返す
+        /// </summary>
+        /// <param name="cur"></param>
+        /// <param name="boardMax"></param>
+        /// <param name="nextRowIndex"></param>
+        /// <param name="nextColIndex"></param>
+        /// <returns></returns>
+        private BoardItem CheckRight(BoardItem cur, int boardMax, int nextRowIndex, int nextColIndex)
+        {
+
+            BoardItem neig = null;
+
+            BoardItem pinc = null;
+
+            //右チェック
+            if (nextColIndex + 2 < boardMax)
+            {
+                neig = m_Point[nextRowIndex, nextColIndex + 1].Piece;
+
+                pinc = m_Point[nextRowIndex, nextColIndex + 2].Piece;
+
+
+                //右端はさみチェック
+                if (nextColIndex + 2 == boardMax - 1)
+                {
+                    if (nextRowIndex == 0 || nextRowIndex == boardMax - 1)
+                    {
+
+                        if (neig == null) { return null; }
+
+                        if (cur.Mode != neig.Mode)
+                        {
+                            neig.Visible = false;
+
+                            m_Point[nextRowIndex, nextColIndex+1].PutOnPiece(null);
+
+                            return neig;
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //中央マスを使用したうえはさみチェック
+                    if (nextRowIndex == (boardMax - 1) / 2 && nextColIndex == (boardMax - 1) / 2 - 2)
+                    {
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.White)
+                            {
+                                if (pinc == null)
+                                {
+                                    //Kingがない場合はとれる
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                            else if (neig.Mode == BoardItem.ePieceMode.WhiteKing)
+                            {
+
+                                BoardItem left = m_Point[nextRowIndex - 1, nextColIndex - 1].Piece;
+
+                                BoardItem right = m_Point[nextRowIndex + 1, nextColIndex  - 1].Piece;
+
+                                if (pinc == null && left.Mode == BoardItem.ePieceMode.Black && right.Mode == BoardItem.ePieceMode.Black)
+                                {
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                //Kingがない場合はとれる
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex + 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+
+
+
+                    }
+                }
+
+
+            }
+
+
+            return null;
+        }
+
+        private BoardItem CheckLeft(BoardItem cur, int boardMax, int nextRowIndex, int nextColIndex)
+        {
+
+            BoardItem neig = null;
+
+            BoardItem pinc = null;
+
+            //左チェック
+            if (nextColIndex - 2 >= 0)
+            {
+                neig = m_Point[nextRowIndex, nextColIndex - 1].Piece;
+
+                pinc = m_Point[nextRowIndex, nextColIndex - 2].Piece;
+
+
+                //左端はさみチェック
+                if (nextColIndex - 2 == 1)
+                {
+                    if (nextColIndex == 0 || nextColIndex == boardMax - 1)
+                    {
+
+                        if (neig == null) { return null; }
+
+                        if (cur.Mode != neig.Mode)
+                        {
+                            neig.Visible = false;
+
+                            m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                            return neig;
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //中央マスを使用したうえはさみチェック
+                    if (nextRowIndex == (boardMax - 1) / 2 && nextColIndex == (boardMax - 1) / 2 + 2)
+                    {
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.White)
+                            {
+                                if (pinc == null)
+                                {
+                                    //Kingがない場合はとれる
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                            else if (neig.Mode == BoardItem.ePieceMode.WhiteKing)
+                            {
+
+                                BoardItem left = m_Point[nextRowIndex + 1, nextColIndex + 1].Piece;
+
+                                BoardItem right = m_Point[nextRowIndex - 1, nextColIndex + 1].Piece;
+
+                                if (pinc == null && left.Mode == BoardItem.ePieceMode.Black && right.Mode == BoardItem.ePieceMode.Black)
+                                {
+                                    neig.Visible = false;
+
+                                    m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                    return neig;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (neig.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                //Kingがない場合はとれる
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //その他の場所
+                        if (neig == null) return null;
+                        if (pinc == null) return null;
+
+                        if (cur.Mode == BoardItem.ePieceMode.Black)
+                        {
+                            if (neig.Mode != BoardItem.ePieceMode.Black && pinc.Mode == BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+                        else
+                        {
+                            //白もしくはking
+                            if (neig.Mode == BoardItem.ePieceMode.Black && pinc.Mode != BoardItem.ePieceMode.Black)
+                            {
+                                neig.Visible = false;
+
+                                m_Point[nextRowIndex, nextColIndex - 1].PutOnPiece(null);
+
+                                return neig;
+                            }
+                        }
+
+
+
+                    }
+                }
+
+
+            }
+
+
+            return null;
         }
 
         #endregion

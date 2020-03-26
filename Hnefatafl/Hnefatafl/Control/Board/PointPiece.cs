@@ -22,10 +22,13 @@ namespace Hnefatafl.Control.Board
 
         internal static bool Is_SelectedMode = false;
 
+        private BoardItem m_Piece = null;
+
         #endregion
 
         #region プロパティ
 
+        public BoardItem Piece { get { return m_Piece; } }
 
         #endregion
 
@@ -78,6 +81,32 @@ namespace Hnefatafl.Control.Board
                 {
                     BackColor = Color.Transparent;
                 }
+            }
+        }
+
+        public void PutOnPiece(BoardItem piece)
+        {
+            if(piece == null) 
+            { 
+                m_Piece = null;
+                return;
+            }
+
+            if (piece.GetType() == typeof(WhitePiece))
+            {
+                m_Piece = piece;
+            }
+            else if (piece.GetType() == typeof(BlackPiece))
+            {
+                m_Piece = piece;
+            }
+            else if (piece.GetType() == typeof(WhiteKing))
+            {
+                m_Piece = piece;
+            }
+            else 
+            {
+                m_Piece = null;
             }
         }
 
