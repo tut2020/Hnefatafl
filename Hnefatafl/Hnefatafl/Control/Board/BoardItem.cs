@@ -37,7 +37,7 @@ namespace Hnefatafl.Control.Board
 
         protected ePieceMode p_PieceMode = ePieceMode.Black;
 
-        private Board m_Board = null;
+        //private Board m_Board = null;
 
         protected int p_RowIndex = 1;
         protected int p_ColumnIndex = 1;
@@ -58,9 +58,19 @@ namespace Hnefatafl.Control.Board
             get { return p_IsSelected; }
         }
 
-        public int RowIndex { get { return p_RowIndex; } }
+        public int RowIndex { get { return p_RowIndex; } set { p_RowIndex = value; } }
 
-        public int ColumnIndex { get { return p_ColumnIndex; } }
+        public int ColumnIndex { get { return p_ColumnIndex; } set { p_ColumnIndex = value; } }
+
+        /// <summary>
+        /// 駒が盤上にあるときTrue
+        /// 取られた時False
+        /// </summary>
+        public bool IsExist
+        {
+            get { return this.Visible; }
+            set { this.Visible = value; }
+        }
 
         //public bool IsExistUpper { get { return p_IsExistUpper; } }
 
@@ -81,10 +91,10 @@ namespace Hnefatafl.Control.Board
             this.Region = new Region(path);
         }
 
-        public void SetBoard(Board board) 
-        {
-            m_Board = board;
-        }
+        //public void SetBoard(Board board) 
+        //{
+        //    m_Board = board;
+        //}
 
         public virtual void SelectThisItem(bool isSelected) 
         {
@@ -122,7 +132,44 @@ namespace Hnefatafl.Control.Board
 
         protected virtual void DrawMe(Graphics g) 
         {
+            //各継承クラスで処理
+        }
 
+        public BoardItem Copy() 
+        {
+            BoardItem item = null;
+
+            switch (p_PieceMode) 
+            {
+                case ePieceMode.Black:
+                    item = (BoardItem)new BlackPiece();
+                    
+                    break;
+                case ePieceMode.PointPiece:
+                    item = (BoardItem)new PointPiece();
+
+                    break;
+                case ePieceMode.White:
+                    item = (BoardItem)new WhitePiece();
+
+                    break;
+                case ePieceMode.WhiteKing:
+                    item = (BoardItem)new WhiteKing();
+
+                    break;
+            }
+
+            item.Visible = this.Visible;
+
+            if(item.Visible == false) 
+            { 
+                int a = 0; 
+            }
+
+            item.RowIndex = p_RowIndex;
+            item.ColumnIndex = p_ColumnIndex;
+
+            return item;
         }
 
         #endregion

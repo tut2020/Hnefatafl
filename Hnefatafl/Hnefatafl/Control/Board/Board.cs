@@ -46,26 +46,6 @@ namespace Hnefatafl.Control.Board
         /// </summary>
         private Panel m_LogPanel = null;
 
-        ///// <summary>
-        ///// ログ保存用配列
-        ///// 
-        ///// null 指されていない手
-        ///// 
-        ///// </summary>
-        //private LogItem[][] m_LogArray;
-
-        ///// <summary>
-        ///// 現在のログの位置 (1次元目)
-        ///// ↓方向
-        ///// </summary>
-        //private int m_CurLog1D = 0;
-
-        ///// <summary>
-        ///// 現在のログの位置 (2次元目)
-        ///// →方向
-        ///// </summary>
-        //private int m_CurLog2D = 0;
-
         /// <summary>
         /// 襲撃者側が常に先手
         /// </summary>
@@ -92,10 +72,23 @@ namespace Hnefatafl.Control.Board
 
         private int m_BoardWidth = 0;
         private int m_BoadHeight = 0;
-       
+
         #endregion
 
         #region プロパティ
+
+        /// <summary>
+        /// 襲撃者側が常に先手
+        /// </summary>
+        public bool IsAttakerTurn { get { return m_IsAttakerTurn; } set { m_IsAttakerTurn = value; } }
+        public PointPiece[,] Point { get { return m_Point; } set { m_Point = value; } }
+
+        private BlackPiece[] Black { get { return m_Black; } set { m_Black = value; } }
+        private WhitePiece[] White { get { return m_White; } set { m_White = value; } }
+
+        private WhiteKing WhiteKing { get { return m_WhiteKing; } set { m_WhiteKing = value; } }
+
+        private Values.eGameMode GameMode { get { return m_GameMode; }}
 
         #endregion
 
@@ -108,16 +101,6 @@ namespace Hnefatafl.Control.Board
         {
             InitializeComponent();
 
-            //SetGameMode(Values.eGameMode.Hnefatafl);
-
-            //m_LogArray = new LogItem[MAX_LOG][];
-
-            //for (int i = 0; i < MAX_LOG; i++) 
-            //{
-            //    m_LogArray[i] = new LogItem[MAX_LOG];
-
-
-            //}
         }
 
         /// <summary>
@@ -330,7 +313,7 @@ namespace Hnefatafl.Control.Board
                     }
 
                     WhiteKing piece = new WhiteKing();
-                    piece.SetBoard(this);
+                    //piece.SetBoard(this);
                     piece.Click += RecieveWhiteKingClicked;
                     this.Controls.Add(piece);
                     piece.SetPoint(m_Point[4, 4]);
@@ -450,6 +433,11 @@ namespace Hnefatafl.Control.Board
             }
         }
 
+        /// <summary>
+        /// ポイントコントロールを選択状態にする
+        /// </summary>
+        /// <param name="isSelectMode"></param>
+        /// <param name="item"></param>
         private void SetPointSelectMode(bool isSelectMode, BoardItem item) 
         {
             int max = GetBoardMax();
@@ -462,8 +450,11 @@ namespace Hnefatafl.Control.Board
 
                 bool bln = true;
 
+                //上方向
                 for (int i = item.RowIndex + 1; i < max; i++)
                 {
+                    if (i == (max - 1) / 2 && item.ColumnIndex == (max - 1) / 2) { continue; }
+
                     if (item.Mode != BoardItem.ePieceMode.WhiteKing) 
                     {
                         if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
@@ -489,8 +480,11 @@ namespace Hnefatafl.Control.Board
 
                 bln = true;
 
+                //下方向
                 for (int i = item.RowIndex - 1; i >= 0; i--)
                 {
+                    if (i == (max - 1) / 2 && item.ColumnIndex == (max - 1) / 2) { continue; }
+
                     if (item.Mode != BoardItem.ePieceMode.WhiteKing)
                     {
                         if (m_Point[i, item.ColumnIndex].RowIndex == 0 && m_Point[i, item.ColumnIndex].ColumnIndex == 0) { continue; }
@@ -516,8 +510,11 @@ namespace Hnefatafl.Control.Board
 
                 bln = true;
 
+                //右方向
                 for (int i = item.ColumnIndex + 1; i < max; i++)
                 {
+                    if (i == (max - 1) / 2 && item.RowIndex == (max - 1) / 2) { continue; }
+
                     if (item.Mode != BoardItem.ePieceMode.WhiteKing)
                     {
                         if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
@@ -543,8 +540,11 @@ namespace Hnefatafl.Control.Board
 
                 bln = true;
 
+                //左方向
                 for (int i = item.ColumnIndex - 1; i >= 0; i--)
                 {
+                    if (i == (max - 1) / 2 && item.RowIndex == (max - 1) / 2) { continue; }
+
                     if (item.Mode != BoardItem.ePieceMode.WhiteKing)
                     {
                         if (m_Point[item.RowIndex, i].RowIndex == 0 && m_Point[item.RowIndex, i].ColumnIndex == 0) { continue; }
@@ -727,7 +727,7 @@ namespace Hnefatafl.Control.Board
                 float x = Values.BOARD_MARGINE / 2;
                 //float y = this.Size.Height - (Values.BOARD_MARGINE + Values.MASS_AND_PEACE_LEN * 1 / 2 + Values.MASS_AND_PEACE_LEN * i);
                 float y = (float)this.Size.Height - ((float)Values.BOARD_MARGINE + (float)Values.MASS_AND_PEACE_LEN * ((float)i + (float)1/2));
-                int acsCode = 97; //65がA
+                int acsCode = 65; //65がA
 
                 //行番号
                 if (i < max) 
@@ -923,6 +923,10 @@ namespace Hnefatafl.Control.Board
             return max;
         }
 
+        /// <summary>
+        /// 王を除いた王の一団(白)の最大個数
+        /// </summary>
+        /// <returns></returns>
         private int GetWhiteMax()
         {
             int max = 0;
@@ -1065,7 +1069,6 @@ namespace Hnefatafl.Control.Board
 
                 item.Location = new Point(x, y);
 
-                m_CurLogItem.NextList.Add(item);
 
                 BoardItem[] temp = CheckRule(nextRowIndex, nextColIndex);
 
@@ -1103,11 +1106,13 @@ namespace Hnefatafl.Control.Board
                     item.Text = item.Text + addString;
                 }
 
+                item.AddPrevItem(m_CurLogItem);
+                item.RecordPieceArrangement(this);
+
+                m_CurLogItem.AddNextItem(item);
+                
                 m_CurLogItem = item;
 
-                //m_LogArray[m_CurLog1D][m_CurLog2D] = item;
-
-                //m_CurLog1D += 1;
             }
         }
 
@@ -1150,15 +1155,13 @@ namespace Hnefatafl.Control.Board
 
                 pinc = m_Point[nextRowIndex + 2, nextColIndex].Piece;
 
+                if (neig == null) { return null; }
 
                 //上端はさみチェック
                 if (nextRowIndex + 2 == boardMax - 1)
                 {
                     if (nextColIndex == 0 || nextColIndex == boardMax - 1)
                     {
-
-                        if (neig == null) { return null; }
-
                         if (cur.Mode != neig.Mode)
                         {
                             neig.Visible = false;
@@ -1304,14 +1307,13 @@ namespace Hnefatafl.Control.Board
 
                 pinc = m_Point[nextRowIndex - 2, nextColIndex].Piece;
 
+                if (neig == null) { return null; }
 
                 //下端はさみチェック
                 if (nextRowIndex - 2 == 1)
                 {
                     if (nextColIndex == 0 || nextColIndex == boardMax - 1)
                     {
-
-                        if (neig == null) { return null; }
 
                         if (cur.Mode != neig.Mode)
                         {
@@ -1467,13 +1469,13 @@ namespace Hnefatafl.Control.Board
                 pinc = m_Point[nextRowIndex, nextColIndex + 2].Piece;
 
 
+                if (neig == null) { return null; }
+
                 //右端はさみチェック
                 if (nextColIndex + 2 == boardMax - 1)
                 {
                     if (nextRowIndex == 0 || nextRowIndex == boardMax - 1)
                     {
-
-                        if (neig == null) { return null; }
 
                         if (cur.Mode != neig.Mode)
                         {
@@ -1620,15 +1622,13 @@ namespace Hnefatafl.Control.Board
 
                 pinc = m_Point[nextRowIndex, nextColIndex - 2].Piece;
 
+                if (neig == null) { return null; }
 
                 //左端はさみチェック
                 if (nextColIndex - 2 == 1)
                 {
                     if (nextColIndex == 0 || nextColIndex == boardMax - 1)
                     {
-
-                        if (neig == null) { return null; }
-
                         if (cur.Mode != neig.Mode)
                         {
                             neig.Visible = false;
@@ -1758,6 +1758,74 @@ namespace Hnefatafl.Control.Board
 
 
             return null;
+        }
+
+        public Board Copy() 
+        {
+            Board board = new Board();
+
+            board.SetGameMode(m_GameMode);
+
+            int boardMax = GetBoardMax();
+            int blackMax = GetBlackMax();
+            int whiteMax = GetWhiteMax();
+
+
+            ///ポイント
+            for (int i = 0; i < boardMax; i++) 
+            {
+                for (int j = 0; j < boardMax; j++) 
+                {
+                    //iが行, jが列
+
+                    board.Point[i, j] = (PointPiece)this.Point[i, j].Copy();
+
+                }
+            }
+
+            int rowI = 0;
+            int colI = 0;
+
+            //黒
+            for (int i = 0; i < blackMax; i++)
+            {
+                board.Black[i] = (BlackPiece)this.Black[i].Copy();
+
+                if (board.Black[i].IsExist == true)
+                {
+                    rowI = board.Black[i].RowIndex;
+                    colI = board.Black[i].ColumnIndex;
+
+                    board.Point[rowI, colI].PutOnPiece((BoardItem)board.Black[i]);
+                }
+            }
+
+            //白
+            for (int i = 0; i < whiteMax; i++)
+            {
+                board.White[i] = (WhitePiece)this.White[i].Copy();
+
+                if (board.White[i].IsExist == true)
+                {
+                    rowI = board.White[i].RowIndex;
+                    colI = board.White[i].ColumnIndex;
+
+                    board.Point[rowI, colI].PutOnPiece((BoardItem)board.White[i]);
+                }
+            }
+
+            //王
+            board.WhiteKing = (WhiteKing)this.WhiteKing.Copy();
+
+            if (board.WhiteKing.IsExist == true)
+            {
+                rowI = board.WhiteKing.RowIndex;
+                colI = board.WhiteKing.ColumnIndex;
+
+                board.Point[rowI, colI].PutOnPiece((BoardItem)board.WhiteKing);
+            }
+
+            return board;
         }
 
         #endregion

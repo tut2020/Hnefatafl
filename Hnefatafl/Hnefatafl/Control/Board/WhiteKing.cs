@@ -28,7 +28,7 @@ namespace Hnefatafl.Control.Board
         public WhiteKing() : base()
         {
 
-            p_PieceMode = ePieceMode.White;
+            p_PieceMode = ePieceMode.WhiteKing;
 
             this.BackColor = DEFAULT_P;
 
