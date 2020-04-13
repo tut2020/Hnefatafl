@@ -12,6 +12,8 @@ namespace Hnefatafl
 {
     public partial class GameForm : Form
     {
+        Control.Board.Board m_Board = new Control.Board.Board();
+
         public GameForm()
         {
             InitializeComponent();
@@ -22,20 +24,41 @@ namespace Hnefatafl
         private void GameForm_Load(object sender, EventArgs e)
         {
 
-            Control.Board.Board br = new Control.Board.Board();
-            br.BackColor = Color.White;
+            m_Board.BackColor = Color.White;
 
-            br.SetGameMode(Values.eGameMode.Tablut);
+            m_Board.SetGameMode(Values.eGameMode.Tablut);
 
-            pnlStage.Controls.Add(br);
+            pnlStage.Controls.Add(m_Board);
 
-            br.Location = new Point(10, 10);
+            m_Board.Location = new Point(10, 10);
 
 
             //設計用にのせているコントロール削除
             pnlLog.Controls.Clear();
 
-            br.SetLogPanel(pnlLog);
+            m_Board.SetLogPanel(pnlLog);
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            //保存処理開始
+            m_Board.SaveData();
+
+        }
+
+        private void btnLoad_Click(object sender, EventArgs e)
+        {
+            //読み込み処理
+
+            if (pnlLog.Controls.Count > 0) 
+            {
+                DialogResult dialogResult = MessageBox.Show("読み込みすると画面は上書きされますがよろしいですか?", "", MessageBoxButtons.OKCancel);
+
+                if (dialogResult == DialogResult.OK) 
+                {
+                    m_Board.LoadData();
+                }
+            }
         }
     }
 }

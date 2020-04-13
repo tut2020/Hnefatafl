@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Hnefatafl.Control.Log;
+using System.IO;
 
 namespace Hnefatafl.Control.Board
 {
@@ -999,8 +1000,83 @@ namespace Hnefatafl.Control.Board
         {
             m_LogPanel = logp;
 
+            LogItem litem = GetFirstLogItem();
+
+            m_LogPanel.Controls.Add(litem);
+
+            litem.Location = new Point(LEFT_MARGIN, TOP_MARGIN);
+
+            m_CurLogItem = litem;
+        }
+
+        private LogItem GetFirstLogItem() 
+        {
             LogItem litem = new LogItem();
             litem.Text = "開始";
+            litem.Tag = 0;
+
+            return litem;
+
+        }
+
+        /// <summary>
+        /// 保存処理
+        /// </summary>
+        public void SaveData() 
+        {
+            SaveFileDialog frm = new SaveFileDialog();
+            
+            frm.Filter = "Hnefatafl Data|*.hnef"; ;
+
+            frm.ShowDialog();
+
+            
+
+            LogItem item = null;
+            int tag = -1;
+
+            foreach (LogItem l in m_LogPanel.Controls) 
+            {
+                if (l.Tag != null) 
+                {
+                    tag = (int)l.Tag;
+
+                    item = l;
+
+                    if (tag == 0) { break; }
+                }
+            }
+
+            string str = "";
+
+            str = item.Text;
+
+            while (item.NextItem != null) 
+            {
+                if (item.NextItem.Length <= 0) { break; }
+                
+                item = item.NextItem[0];
+
+                str += "\r\n" + item.Text;
+
+                
+            }
+
+            string path = frm.FileName;
+
+            using (StreamWriter streamWriter = new StreamWriter(path))
+            {
+                // Writeメソッドで文字列データを書き込む
+                streamWriter.Write(str);
+            }
+
+        }
+
+        public void LoadData() 
+        {
+            m_LogPanel.Controls.Clear();
+
+            LogItem litem = GetFirstLogItem();
 
             m_LogPanel.Controls.Add(litem);
 

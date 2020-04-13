@@ -31,7 +31,6 @@
             this.pnlStage = new System.Windows.Forms.Panel();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
-            this.btnCopy = new System.Windows.Forms.Button();
             this.pnlLog = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -53,6 +52,7 @@
             this.btnSave.TabIndex = 2;
             this.btnSave.Text = "SAVE";
             this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // btnLoad
             // 
@@ -62,15 +62,7 @@
             this.btnLoad.TabIndex = 2;
             this.btnLoad.Text = "LOAD";
             this.btnLoad.UseVisualStyleBackColor = true;
-            // 
-            // btnCopy
-            // 
-            this.btnCopy.Location = new System.Drawing.Point(654, 415);
-            this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(75, 23);
-            this.btnCopy.TabIndex = 2;
-            this.btnCopy.Text = "COPY";
-            this.btnCopy.UseVisualStyleBackColor = true;
+            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
             // 
             // pnlLog
             // 
@@ -109,7 +101,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(867, 450);
             this.Controls.Add(this.pnlLog);
-            this.Controls.Add(this.btnCopy);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.btnSave);
@@ -126,7 +117,6 @@
         private System.Windows.Forms.Panel pnlStage;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnLoad;
-        private System.Windows.Forms.Button btnCopy;
         private System.Windows.Forms.Panel pnlLog;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label5;
