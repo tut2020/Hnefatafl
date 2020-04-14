@@ -60,5 +60,10 @@ namespace Hnefatafl
                 }
             }
         }
+
+        private void btnInitilize_Click(object sender, EventArgs e)
+        {
+            m_Board.Initilize();
+        }
     }
 }

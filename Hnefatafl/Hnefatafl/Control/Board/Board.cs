@@ -1026,7 +1026,7 @@ namespace Hnefatafl.Control.Board
         {
             SaveFileDialog frm = new SaveFileDialog();
             
-            frm.Filter = "Hnefatafl Data|*.hnef"; ;
+            frm.Filter = "Hnefatafl Data|*.hnef";
 
             frm.ShowDialog();
 
@@ -1064,7 +1064,7 @@ namespace Hnefatafl.Control.Board
 
             string path = frm.FileName;
 
-            using (StreamWriter streamWriter = new StreamWriter(path))
+            using (StreamWriter streamWriter = new StreamWriter(path, false, System.Text.Encoding.GetEncoding("shift_jis")))
             {
                 // Writeメソッドで文字列データを書き込む
                 streamWriter.Write(str);
@@ -1072,9 +1072,18 @@ namespace Hnefatafl.Control.Board
 
         }
 
-        public void LoadData() 
+        /// <summary>
+        /// ボードの初期化
+        /// </summary>
+        public void Initilize() 
         {
             m_LogPanel.Controls.Clear();
+
+            this.Controls.Clear();
+
+            SetPiece();
+
+            m_IsAttakerTurn = true;
 
             LogItem litem = GetFirstLogItem();
 
@@ -1083,6 +1092,97 @@ namespace Hnefatafl.Control.Board
             litem.Location = new Point(LEFT_MARGIN, TOP_MARGIN);
 
             m_CurLogItem = litem;
+        }
+
+        public void LoadData() 
+        {
+            OpenFileDialog frm = new OpenFileDialog();
+
+            frm.Filter = "Hnefatafl Data|*.hnef";
+
+            DialogResult result = frm.ShowDialog();
+
+            if (result == DialogResult.OK) 
+            {
+                Initilize();
+
+                string str = "";
+
+                string path = frm.FileName;
+
+                using (StreamReader streamReader = new StreamReader(path, System.Text.Encoding.GetEncoding("shift_jis")))
+                {
+                    bool bln = false;
+
+                    while (streamReader.Peek() != -1)
+                    {
+                        str = streamReader.ReadLine();
+
+                        if (str.Contains("開始") == true) 
+                        {
+                            bln = true;
+
+                            break;
+                        }
+                    }
+
+                    if (bln == true) 
+                    {
+                        int acsCode = 97; //65がA, 97がa
+                        
+                        
+                        while (streamReader.Peek() != -1)
+                        {
+                            str = streamReader.ReadLine();
+
+
+                            //最初の2文字現在位置
+                            char[] t = str.ToCharArray();
+
+                            int rowIndex = 0;
+                            int colIndex = 0;
+
+                            int nextRowIndex = 0;
+                            int nextColIndex = 0;
+
+                            if(t.Length < 5) { continue; }
+
+                            //charをアスキーコードに変換
+                            colIndex = (int)t[0];
+
+                            int.TryParse(t[1].ToString(), out rowIndex);
+
+                            rowIndex = rowIndex - 1;
+                            colIndex = colIndex - acsCode;
+
+                            nextColIndex = (int)t[3];
+
+                            int.TryParse(t[4].ToString(), out nextRowIndex);
+
+                            nextRowIndex = nextRowIndex - 1;
+                            nextColIndex = nextColIndex - acsCode;
+
+                            //指定位置のピースを選択
+                            BoardItem p = m_Point[rowIndex, colIndex].Piece;
+
+                            if(p == null) { return; }
+
+                            //元の位置から削除
+                            m_Point[rowIndex, colIndex].PutOnPiece(null);
+
+                            //移動先へ
+                            p.SetPoint(m_Point[nextRowIndex, nextColIndex]);
+                            m_Point[nextRowIndex, nextColIndex].PutOnPiece(p);
+
+                            //移動後のチェック
+                            SetLogItemAndChangeTurn(p.Mode, rowIndex, colIndex, nextRowIndex, nextColIndex);
+
+
+                        }
+                    }
+                }
+            }
+
         }
 
         public void SetLogItemAndChangeTurn(BoardItem.ePieceMode mode, int curRow, int curCol, int nextRowIndex, int nextColIndex) 

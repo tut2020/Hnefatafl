@@ -34,6 +34,7 @@
             this.pnlLog = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.btnInitilize = new System.Windows.Forms.Button();
             this.pnlLog.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -95,12 +96,23 @@
             this.label5.Text = "LOG";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // btnInitilize
+            // 
+            this.btnInitilize.Location = new System.Drawing.Point(658, 415);
+            this.btnInitilize.Name = "btnInitilize";
+            this.btnInitilize.Size = new System.Drawing.Size(75, 23);
+            this.btnInitilize.TabIndex = 2;
+            this.btnInitilize.Text = "INITILIZE";
+            this.btnInitilize.UseVisualStyleBackColor = true;
+            this.btnInitilize.Click += new System.EventHandler(this.btnInitilize_Click);
+            // 
             // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(867, 450);
             this.Controls.Add(this.pnlLog);
+            this.Controls.Add(this.btnInitilize);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.btnSave);
@@ -120,6 +132,7 @@
         private System.Windows.Forms.Panel pnlLog;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button btnInitilize;
     }
 }
 
